@@ -7,7 +7,7 @@ message Person {
   optional int32 id = 2; // Unique ID number for this person.
   optional string email = 3;
 
-  enum PhoneType { 
+  enum PhoneType {
     MOBILE = 0;
     HOME = 1;
     WORK = 2;
@@ -27,8 +27,8 @@ message Person {
 // Our address book file is just one of these.
 message AddressBook { repeated Person people = 1; }
 
-service PeopleService {
-    rpc get(Empty) returns (stream Person);
-}
+service PeopleService { rpc get(Empty) returns ( PeopleResp ); }
+
+message PeopleResp { repeated Person people = 1; }
 
 message Empty {}

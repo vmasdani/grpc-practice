@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:grpc/grpc.dart';
+import 'package:proto/protos/model.pb.dart';
 import 'package:proto/protos/model.pbgrpc.dart';
-import 'package:proto/protos/model.pbjson.dart';
+
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -130,23 +133,46 @@ class _MyHomePageState extends State<MyHomePage> {
                   try {
                     print('Sending RPC');
 
-                    print(_person?.toProto3Json());
+                    // print(_person?.toProto3Json());
 
-                    final channel = ClientChannel(
-                      '192.168.1.14',
-                      port: 8080,
-                      options: ChannelOptions(
-                        credentials: ChannelCredentials.insecure(),
-                        idleTimeout: Duration(
-                          minutes: 5,
+                    final stub = PeopleServiceClient(
+                      ClientChannel(
+                        '192.168.1.14',
+                        port: 50051,
+                        options: const ChannelOptions(
+                          credentials: ChannelCredentials.insecure(),
+                          idleTimeout: Duration(minutes: 5),
                         ),
                       ),
                     );
 
-                    final service = PeopleServiceClient(channel);
-
                     print('[Getting grpc]');
-                    service.get(Empty());
+                    final res = await stub.get(Empty());
+
+                    print('[Result]');
+                    print(
+                      res.toProto3Json(),
+                    );
+
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: Text('OK'),
+                        content: Container(
+                          child: Text(
+                            JsonEncoder.withIndent('  ').convert(
+                              res.toProto3Json(),
+                            ),
+                            style: TextStyle(
+                              fontFeatures: [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+
                     print('[Getting grpc end]');
                   } catch (e) {
                     print('[Error sending rpc] $e');
